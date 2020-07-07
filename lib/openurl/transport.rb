@@ -22,6 +22,8 @@ module OpenURL
     # subsequent requests.  The contextobject argument can be an OpenURL 
     # ContextObject object, and array of ContextObjects or nil.  http_arguments 
     # set the Net::HTTP attributes: {:open_timeout=>3, :read_timeout=>5}, etc.
+    # SSL enabled automatically for https:// target_base_url, override cert
+    # verification with http_arguments[:openssl_verify_mode] = OpenSSL::SSL::VERIFY_NONE
     
 		def initialize(target_base_url, contextobject=nil, http_arguments={})      
 			@uri = URI.parse(target_base_url)
@@ -32,6 +34,10 @@ module OpenURL
       @client = Net::HTTP.new(@uri.host, @uri.port)
       @client.open_timeout = (http_arguments[:open_timeout]||3)
       @client.read_timeout = (http_arguments[:read_timeout]||5)
+      if @uri.scheme == 'https'
+        @client.use_ssl = true
+        @client.verify_mode = (http_arguments[:openssl_verify_mode]||OpenSSL::SSL::VERIFY_PEER)
+      end
 		end
 		
     # Can take either an OpenURL::ContextObject or an array of ContextObjects
